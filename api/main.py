@@ -66,6 +66,10 @@ def save():
     memscol.update_one({'_id':ObjectId(i)}, {"$set":mems[i]})
   for i in guilds:
     guildscol.update_one({'_id':ObjectId(i)}, {"$set":guilds[i]})
+  assignidcol.update_one({'actualdoc':True}, {"$inc", {'val':1}})
+assignidcol = database['id']
+assignid = assignidcol.find_one({'actualdoc':True})['val']
+print(assignid)
 @app.route('/')
 def homepager():
   return render_template('start.html', id=request.headers['X-Replit-User-Id'], name=request.headers['X-Replit-User-Name'])
@@ -90,14 +94,14 @@ def sendmessage_withGET():
     form[str(i)[2:-1]] = str(form[i][0])[2:-1]
     del form[i]
   global guilds
-  msgtosend = {'author':form['user'], 'content':form['message'], 'timesent':form['time'], 'id':db['id']}
-  db['id'] += 1
+  msgtosend = {'author':form['user'], 'content':form['message'], 'timesent':form['time'], 'id':assignid}
+  assignid += 1
   for guild in guilds:
     if guild['id'] == int(form['guildid']):
       guild['messages'].append(msgtosend)
   db['guilds'] = guilds
   addtolog(form['user'] + f' sent a message.({time.ctime(time.time())})\n')
-  return str(db['id']-1)
+  return str(assignid-1)
 
 @app.route('/getmessages', methods=['GET'])
 def getmessages_withGET():
@@ -157,8 +161,8 @@ def makeprof():
   for i in form.copy():
     form[str(i)[2:-1]] = str(form[i][0])[2:-1]
     del form[i]
-  mems[form['name'].replace('+', ' ')] = {'status':'Click to change status', 'password':form['pwd'], 'id':db['id'],'guilds':[], 'pfp':open('base64default').read(), 'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}}
-  db['id'] += 1
+  mems[form['name'].replace('+', ' ')] = {'status':'Click to change status', 'password':form['pwd'], 'id':assignid,'guilds':[], 'pfp':open('base64default').read(), 'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}}
+  assignid += 1
   db['mems'] = mems
   mems = json.loads(db.get_raw('mems'))
   addtolog(form['name'] + f' created their profile.({time.ctime(time.time())})\n')
@@ -203,9 +207,9 @@ def makeguild():
     del form[i]
   global guilds
   global mems
-  guilds.append({'name':form['name'], 'invite code':form['code'], 'members':[form['owner']], 'id':db['id'], 'messages':[], 'owner':form['owner']})
-  mems[getmemwithid(int(form['owner']))]['guilds'].append(db['id'])
-  db['id'] += 1
+  guilds.append({'name':form['name'], 'invite code':form['code'], 'members':[form['owner']], 'id':assignid, 'messages':[], 'owner':form['owner']})
+  mems[getmemwithid(int(form['owner']))]['guilds'].append(assignid)
+  assignid += 1
   db['guilds'] = guilds
   db['mems'] = mems
   return ''
