@@ -299,4 +299,4 @@ def botmessagecame(data):
   print('a bot message arrived', 'data', data)
   
 if __name__ == '__main__':
-  suckit.run(app, host='0.0.0.0', port=8080)
+  suckit.run(app)
