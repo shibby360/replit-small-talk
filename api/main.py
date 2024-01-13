@@ -4,7 +4,14 @@ import urllib
 import requests
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
-
+import pymongo
+import os
+if os.path.isfile('mongouri.txt'):
+  connectionstring = open('mongouri.txt').read().strip()
+else:
+  connectionstring = os.environ.get('MONGO_URI')
+cluster = pymongo.MongoClient(connectionstring)
+database = cluster['replit-small-talk']
 #log = logging.getLogger('werkzeug')
 #log.setLevel(logging.WARNING)
 app = Flask('messager', template_folder='ts')
@@ -19,8 +26,10 @@ class bcolors:
   clean = '\033[0m'
   bold = '\033[1m'
   underline = '\033[4m'
-mems = json.loads(db.get_raw('mems'))
-bots = json.loads(db.get_raw('bots'))
+memscol = database['mems']
+mems = {}
+for i in memscol.find():
+  mems[str(i['_id'])] = i
 def find(list, prop, val):
   for i in list:
     if i[prop] == val:
@@ -46,8 +55,10 @@ def addtolog(texttoadd):
     filelines.pop(0)
     writelog.write(''.join(filelines))
     writelog.close()
-guilds = json.loads(db.get_raw('guilds'))
-db['guilds'] = guilds
+guildscol = database['guilds']
+guilds = {}
+for i in guildscol.find():
+  guilds[str(i['_id'])] = i
 @app.route('/')
 def homepager():
   return render_template('start.html', id=request.headers['X-Replit-User-Id'], name=request.headers['X-Replit-User-Name'])
