@@ -201,7 +201,7 @@ def editmsg():
 
 @app.route('/guilds/<guildid>', methods=['GET'])
 def allguilds(guildid):
-  fullguild = find(guilds, 'id', int(guildid))
+  fullguild = guildscol.find_one({'id':int(guildid)})
   guildmems = []
   for i in fullguild['members']:
     for j in mems:
