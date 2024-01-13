@@ -99,7 +99,7 @@ def sendmessage_withGET():
   for guild in guilds:
     if guild['id'] == int(form['guildid']):
       guild['messages'].append(msgtosend)
-  db['guilds'] = guilds
+  save()
   addtolog(form['user'] + f' sent a message.({time.ctime(time.time())})\n')
   return str(assignid-1)
 
@@ -151,7 +151,7 @@ def delmsg():
         if mess['id'] == int(form['id']):
           messages = [i for i in messages if i['id']!=mess['id']]
       guild['messages'] = messages
-  db['guilds'] = guilds
+  save()
   return ''
 
 @app.route('/makeprof', methods=['GET'])
@@ -163,8 +163,7 @@ def makeprof():
     del form[i]
   mems[form['name'].replace('+', ' ')] = {'status':'Click to change status', 'password':form['pwd'], 'id':assignid,'guilds':[], 'pfp':open('base64default').read(), 'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}}
   assignid += 1
-  db['mems'] = mems
-  mems = json.loads(db.get_raw('mems'))
+  save()
   addtolog(form['name'] + f' created their profile.({time.ctime(time.time())})\n')
   toret = mems[form['name'].replace('+', ' ')].copy()
   return toret
@@ -183,7 +182,7 @@ def editmsg():
         if mess['id'] == int(form['id']):
           mess['content'] = form['new']
       guild['messages'] = messages
-  db['guilds'] = guilds
+  save()
   return ''
 
 @app.route('/guilds/<guildid>', methods=['GET'])
@@ -210,8 +209,7 @@ def makeguild():
   guilds.append({'name':form['name'], 'invite code':form['code'], 'members':[form['owner']], 'id':assignid, 'messages':[], 'owner':form['owner']})
   mems[getmemwithid(int(form['owner']))]['guilds'].append(assignid)
   assignid += 1
-  db['guilds'] = guilds
-  db['mems'] = mems
+  save()
   return ''
 
 @app.route('/getAGuild/<id>', methods=['GET'])
@@ -233,7 +231,7 @@ def invite(code):
           data['role'] = 'user'
           guild['members'].append(int(form['userid']))
           mems[mem]['guilds'].append(guild['id'])
-  db['guilds'] = guilds
+  save()
   return ''
 
 @app.route('/editprof/<toedit>/<value>/<username>')
@@ -244,7 +242,7 @@ def editprof(toedit, value, username):
   if toedit == 'online':
     value = eval(value)
   mems[username][toedit] = value
-  db['mems'] = mems
+  save()
   return mems[username]
 
 @app.route('/widget/<guildid>')
@@ -271,10 +269,7 @@ def kick_withGET():
     if guild['id'] == int(form['guildid']) and int(form['userid']) in guild['members']:
       guild['members'].remove(int(form['userid']))
       mems[form['username']]['guilds'].remove(int(form['guildid']))
-  db['mems'] = mems
-  db['guilds'] = guilds
-  guilds = json.loads(db.get_raw('guilds'))
-  mems = json.loads(db.get_raw('mems'))
+  save()
   return 'booooteddd'
         
 @suckit.on('updmsg')
