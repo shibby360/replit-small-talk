@@ -31,6 +31,7 @@ memscol = database['mems']
 mems = {}
 for i in memscol.find():
   mems[str(i['_id'])] = i
+print(mems)
 def find(list, prop, val):
   for i in list:
     if i[prop] == val:
@@ -118,15 +119,13 @@ def loggedin_withGET():
     if form['pwd'] == mems[form['user']]['password']:
       addtolog(form['user'] + f' logged in.({time.ctime(time.time())})\n')
       mems[form['user']]['online'] = True
-      if '[Bot]' in form['user']:
-        return find(bots, 'name', form['user'].replace('[Bot]', ''))
       toret = dict(mems[form['user']]).copy()
-      del toret['pfp']
+      # del toret['pfp']
       return toret
     else:
       return 'invalid auth'
   elif form['replit'] != 'undefined':
-    return requests.get('https://small-talk.shivankchhaya.repl.co/makeprof?name=' + form['user'] + '&pwd=' + form['pwd'] + '&bot=no&ip=99.99.999.999').text
+    return requests.get('https://small-talk.shivankchhaya.repl.co/makeprof?name=' + form['user'] + '&pwd=' + form['pwd']).text
   return 'Not found user.'
 
 @app.route('/delmsg', methods=['GET'])
@@ -158,29 +157,13 @@ def makeprof():
   for i in form.copy():
     form[str(i)[2:-1]] = str(form[i][0])[2:-1]
     del form[i]
-  form['bot'] = form['bot'].replace('no', '')
-  mems[form['name'].replace('+', ' ')] = {'status':'Click to change status', 'password':form['pwd'], 'id':db['id'], 'bot':form['bot'], 'guilds':[], 'pfp':open('base64default').read(), 'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}}
+  mems[form['name'].replace('+', ' ')] = {'status':'Click to change status', 'password':form['pwd'], 'id':db['id'],'guilds':[], 'pfp':open('base64default').read(), 'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}}
   db['id'] += 1
   db['mems'] = mems
   mems = json.loads(db.get_raw('mems'))
-  if form['bot'] == '[Bot]':
-    bots.append({'name':form['name'], 'website':form['botsite'], 'prefix':form['botfix']})
-    db['bots'] = bots
   addtolog(form['name'] + f' created their profile.({time.ctime(time.time())})\n')
-  if '[Bot]' in form['name']:
-    return find(bots, form['name'].replace('[Bot]', ''))
   toret = mems[form['name'].replace('+', ' ')].copy()
   return toret
-
-@app.route('/getBots', methods=['GET'])
-def getBots():
-  form = urllib.parse.parse_qs(request.query_string)
-  for i in form.copy():
-    form[str(i)[2:-1]] = str(form[i][0])[2:-1]
-    del form[i]
-  for guild in guilds:
-    if guild['id'] == int(form['guildid']):
-      return {'bots':guild['bots']}
 
 @app.route('/editmsg', methods=['GET'])
 def editmsg():
@@ -220,7 +203,7 @@ def makeguild():
     del form[i]
   global guilds
   global mems
-  guilds.append({'name':form['name'], 'invite code':form['code'], 'members':[form['owner']], 'id':db['id'], 'messages':[], 'bots':[], 'owner':form['owner']})
+  guilds.append({'name':form['name'], 'invite code':form['code'], 'members':[form['owner']], 'id':db['id'], 'messages':[], 'owner':form['owner']})
   mems[getmemwithid(int(form['owner']))]['guilds'].append(db['id'])
   db['id'] += 1
   db['guilds'] = guilds
@@ -247,14 +230,6 @@ def invite(code):
           guild['members'].append(int(form['userid']))
           mems[mem]['guilds'].append(guild['id'])
   db['guilds'] = guilds
-  return ''
-  
-@app.route('/botmessage/<guildid>')
-def botmessage(guildid):
-  for guild in guilds:
-    if guild['id'] == int(guildid):
-      # suckit.emit('updtmsg', {'guildid':guildid}, broadcast=True)
-      pass
   return ''
 
 @app.route('/editprof/<toedit>/<value>/<username>')
@@ -304,15 +279,10 @@ def updmsg(data):
     if guild['id'] == int(data['guildid']):
       emit('updtmsg', {'guildid':data['guildid']}, broadcast=True)
 
-@suckit.on('editpfp')
-def editpfp(data):
-  mems[data['username']]['pfp'] = data['dataurl']
-  db['mems'] = mems
+# @suckit.on('editpfp')
+# def editpfp(data):
+#   mems[data['username']]['pfp'] = data['dataurl']
+#   db['mems'] = mems
 
-@suckit.on('botmessage')
-def botmessagecame(data):
-  rq = requests.get(data.botinfo.website+'/event/message?message='+data.message+'&id='+data.msgid+'&time='+data.time+'&guild='+data.guildid)
-  print('a bot message arrived', 'data', data)
-  
 if __name__ == '__main__':
   suckit.run(app)
