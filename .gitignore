@@ -6,3 +6,4 @@ poetry.lock
 pyproject.toml
 .replit
 replit.nix
+mongouri.txt
