@@ -86,12 +86,16 @@ def homepager():
 
 @app.route('/users/<name>')
 def getMem(name):
-  body = mems[name]['status'] if name in mems else 'User not found.'
-  return render_template('user.html', user=name, userstatus=body, userpfp=mems[name]['pfp'])
+  body = getdocbyusername(name)['status'] if getdocbyusername(name) else 'User not found.'
+  return render_template('user.html', user=name, userstatus=body)#, userpfp=mems[name]['pfp'])
 
 @app.route('/users')
 def getUsers():
-  return mems
+  toret = mems.copy()
+  for i in toret:
+    del toret[i]['_id']
+    del toret[i]['password']
+  return toret
 
 @app.route('/allusers/<guildid>')
 def allusers(guildid):
@@ -224,7 +228,10 @@ def makeguild():
 
 @app.route('/getAGuild/<id>', methods=['GET'])
 def getAGuild(id):
-  return find(guilds, 'id', int(id))
+  guildtoret = guildscol.find_one({'id':int(id)})
+  guildtoret = guildtoret.copy()
+  del guildtoret['_id']
+  return guildtoret
 
 @app.route('/invite/<code>')
 def invite(code):
