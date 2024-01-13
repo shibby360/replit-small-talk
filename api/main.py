@@ -74,7 +74,7 @@ assignid = assignidcol.find_one({'actualdoc':True})['val']
 print(assignid)
 @app.route('/')
 def homepager():
-  return render_template('start.html', id=request.headers['X-Replit-User-Id'], name=request.headers['X-Replit-User-Name'])
+  return render_template('start.html')
 
 @app.route('/users/<name>')
 def getMem(name):
@@ -130,8 +130,6 @@ def loggedin_withGET():
       return toret
     else:
       return 'invalid auth'
-  elif form['replit'] != 'undefined':
-    return requests.get('https://small-talk.shivankchhaya.repl.co/makeprof?name=' + form['user'] + '&pwd=' + form['pwd']).text
   return 'Not found user.'
 
 @app.route('/delmsg', methods=['GET'])
