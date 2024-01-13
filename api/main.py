@@ -4,6 +4,7 @@ import urllib
 import requests
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
+from bson.objectid import ObjectId
 import pymongo
 import os
 if os.path.isfile('mongouri.txt'):
@@ -59,6 +60,11 @@ guildscol = database['guilds']
 guilds = {}
 for i in guildscol.find():
   guilds[str(i['_id'])] = i
+def save():
+  for i in mems:
+    memscol.update_one({'_id':ObjectId(i)}, {"$set":mems[i]})
+  for i in guilds:
+    guildscol.update_one({'_id':ObjectId(i)}, {"$set":guilds[i]})
 @app.route('/')
 def homepager():
   return render_template('start.html', id=request.headers['X-Replit-User-Id'], name=request.headers['X-Replit-User-Name'])
