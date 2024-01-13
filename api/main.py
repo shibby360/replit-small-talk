@@ -62,6 +62,8 @@ guilds = {}
 for i in guildscol.find():
   guilds[str(i['_id'])] = i
 def save():
+  print('aight')
+  return
   for i in mems:
     memscol.update_one({'_id':ObjectId(i)}, {"$set":mems[i]})
   for i in guilds:

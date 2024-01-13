@@ -14,18 +14,15 @@
     <p id='notfound' style="display: none; color: red;">User not found.</p>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
     <srcipt src="{{ url_for('static', filename='js/leave.js') }}"></srcipt>
-    <div id="replauthdiv">
-      <script authed="location.reload()" src="https://auth.turbio.repl.co/script.js"></script>
-    </div>
     <script>
       if(localStorage.getItem('username')) {
         window.location = 'users/'+localStorage.getItem('username')
       }
       var xhr = new XMLHttpRequest()
-      function login(replit) {
+      function login() {
         document.getElementById('notfound').style.display = 'none'
         localStorage.setItem('username', `${document.getElementById('user').value}`)
-        xhr.open('GET', `/loggedin?user=${document.getElementById('user').value}&pwd=${document.getElementById('pwd').value}&replit=${replit}`, true)
+        xhr.open('GET', `/loggedin?user=${document.getElementById('user').value}&pwd=${document.getElementById('pwd').value}`, true)
         xhr.send()
         xhr.onreadystatechange = processRequest
         function processRequest(e) {

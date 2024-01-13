@@ -22,7 +22,6 @@
     var False = false
     var user = {{ user|safe }}
     document.getElementsByTagName('img')[0].src = user.pfp
-    document.getElementById('name').innerHTML = user.name.replace('[Bot]', '<span class="botlabel">Bot</span>')
     document.getElementById('status').innerText = user.status
   </script>
 </body>

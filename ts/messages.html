@@ -218,9 +218,6 @@
               })
             })
           }
-          if(guild.messages[i]['author'].endsWith('[Bot]')) {
-            guild.messages[i]['author'] = guild.messages[i]['author'].replace('[Bot]', '<span class="botlabel">Bot</span>')
-          }
           function addZeroIfNeeded(num) {
             if(num < 9) {
               return '0'+num
@@ -324,57 +321,6 @@
             if (xhr.readyState === 4 && xhr.status === 200) {
               suckit.emit('updmsg', {'guildid':guild.id})
               msgid = xhr.responseText
-              xhr.open('GET', '/getBots?guildid=' + guild.id, true)
-              xhr.send()
-              xhr.onreadystatechange = processReques
-              function processReques() {
-                if(xhr.readyState == 4 && xhr.status == 200) {
-                  var resp = JSON.parse(xhr.responseText)
-                  for(var i = 0; i < resp.bots.length; i++) {
-                    // bookmark
-                    var j = resp.bots[i]
-                    var data = {
-                      botinfo:j,
-                      message:message,
-                      msgid:msgid,
-                      time:time,
-                      guildid:guild.id
-                    }
-                    data.botinfo = j
-                    //fetch(j.website+'/event/message?message='+message+'&id='+msgid+'&time='+time+'&guild='+guild.id)
-                    var splitmsg = message.split(' ')
-                    function moreparse(splitstr) {
-                      var strtqi 
-                      var endqi
-                      var toret = splitstr
-                      for(var n in splitstr) {
-                        o = splitstr[n]
-                        if(o.startsWith('"')) {
-                          strtqi = n
-                        } else if(o.endsWith('"')) {
-                          endqi = n
-                          toret[strtqi] = splitstr.slice(strtqi, endqi+1).join(' ').replaceAll('"', '')
-                          for(var k = strtqi+1; k < endqi+1; k++) {
-                            toret.splice(k, 1)
-                          }
-                        }
-                      }
-                      return toret
-                    }
-                    splitmsg = moreparse(splitmsg)
-                    var querytosend = '?'
-                    for(var m = 1; m < splitmsg.length; m++) {
-                      querytosend += `param${m}=${splitmsg[m]}&`
-                    }
-                    querytosend += 'guildId='+guild.id+'&initiator='+user
-                    data.querytosend = querytosend
-                    /*if(message.startsWith(j.prefix)) {
-                      fetch(j.website+'/command/'+splitmsg[0].substr(1)+querytosend).then(getMessages)
-                    }*/
-                    suckit.emit('botmessage', data)
-                  }
-                }
-              }
             }
           }
         }
@@ -388,7 +334,7 @@
           if(k.id === guild.owner) {
             k.name += ' 👑'
           }
-          var newk = k.name.replace('👑', '<span id="crownemoji">👑</span><span id="serverownertext">Server Owner</span>').replace('[Bot]', '<span class="botlabel">Bot</span>')
+          var newk = k.name.replace('👑', '<span id="crownemoji">👑</span><span id="serverownertext">Server Owner</span>')
           if(k.online) {
             var bordercol = 'green'
           } else {
