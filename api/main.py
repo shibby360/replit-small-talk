@@ -127,11 +127,13 @@ def loggedin_withGET():
   for i in form.copy():
     form[str(i)[2:-1]] = str(form[i][0])[2:-1]
     del form[i]
-  if form['user'] in mems:
-    if form['pwd'] == mems[form['user']]['password']:
+  userdoc = getdocbyusername(form['user'])
+  if userdoc:
+    if form['pwd'] == userdoc['password']:
       addtolog(form['user'] + f' logged in.({time.ctime(time.time())})\n')
-      mems[form['user']]['online'] = True
-      toret = dict(mems[form['user']]).copy()
+      userdoc['online'] = True
+      toret = dict(userdoc).copy()
+      del toret['_id']
       # del toret['pfp']
       return toret
     else:
