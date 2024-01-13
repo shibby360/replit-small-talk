@@ -66,7 +66,7 @@ button {
   border-style: solid;
   border-width: 2px;
 }
-#createprofilebtn, #replauthdiv button {
+#createprofilebtn {
   display: block;
 }
 #serverownertext { 
@@ -169,7 +169,7 @@ body.dark .botlabel {
   border-color: white;
   color: white;
 }
-body.dark #createprofilebtn, body.dark #replauthdiv button {
+body.dark #createprofilebtn {
   background-color: white;
   color: black;
 }
@@ -233,7 +233,7 @@ body.light .botlabel {
   border-color: black;
   color: black;
 }
-body.light #createprofilebtn, body.light #replauthdiv button {
+body.light #createprofilebtn {
   background-color: black;
   color: white;
 }
