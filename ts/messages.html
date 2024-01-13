@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>{{ fullguildname }}</title>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
+  </head>
+  <body class="dark">
+    <h1>{{ fullguildname }}</h1>
+    <img id='flag'>
+    <div id="guildscreen">
+      <div id='messages'></div>
+      <h2>Members</h2>
+      <ul id="memlist"></ul>
+    </div>
+    <input placeholder="message here" id="messagetosend" autocomplete="off">
+    <button id="sender">Send</button>
+    <br>
+    <button id="frame" onclick="widgetlink()">Get a link for widget to this server</button>
+    <br>
+    <div id='messagemenu' style="display: none;">
+      <button class="forowner" id="delmsgr">Delete message</button>
+      <button class="forowner" id="editmsgr">Edit message</button>
+      <button class="" id="copyidr">Copy message ID</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/ip.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/leave.js') }}"></script>
+    <script src="https://js-extras.shivankchhaya.repl.co/easyCss/easyCss.js"></script>
+    <script>
+      var guildscreen = document.getElementById('guildscreen')
+      easyCss()
+      grid(guildscreen, [
+        {
+          el:guildscreen.children[0],
+          row:0,
+          column:0,
+          rowspan:2
+        },
+        {
+          el:guildscreen.children[1],
+          row:0,
+          column:1
+        },
+        {
+          el:guildscreen.children[2],
+          row:1,
+          column:1
+        }
+      ], {
+        columnSizes:new CssSize('50', 'vw')
+      })
+      try {
+      HTMLCollection.prototype.insertAfter = function(referenceNode, newNode) {
+        referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling)
+      }
+      var guild = {{ fullguild|safe }}
+      var True = true
+      var False = false
+      var guildmems = {{ guildmems|safe }}
+      var serverowner
+      function getAUserWithId(id, clbk) {
+        fetch('/users').then(function(r) {
+          r.json().then(function(t) {
+            for(var i in t) {
+              if(t[i]['id'] === id) {
+                var l = t[i]
+                l.name = i
+                clbk(l)
+              }
+            }
+          })
+        })
+      }
+      function confirmpopup(text, clbk) {
+        for(var i = 0; i < document.body.children.length; i++) {
+          document.body.children[i].style.opacity = '20%'
+        }
+        var popupcon = document.createElement('div')
+        popupcon.style.position = 'absolute'
+        popupcon.style.top = '0px'
+        popupcon.style.left = '0px'
+        fillScreen(popupcon)
+        popupcon.style.opacity = '100%'
+        var popup = document.createElement('div')
+        popup.style.backgroundColor = 'gray'
+        popup.style.width = '300px'
+        popup.style.height = '200px'
+        popup.style.textAlign = 'center'
+        popup.innerText = text
+        popup.innerHTML += '<br><div></div>'
+        var cancel = document.createElement('button')
+        cancel.innerText = 'Cancel'
+        cancel.onclick = function() {
+          this.parentElement.parentElement.parentElement.remove()
+          for(var i = 0; i < document.body.children.length; i++) {
+            document.body.children[i].style.opacity = '100%'
+          }
+        }
+        popup.children[1].appendChild(cancel)
+        var confirmr = document.createElement('button')
+        confirmr.innerText = 'Confirm'
+        confirmr.onclick = function() {
+          this.parentElement.parentElement.parentElement.remove()
+          for(var i = 0; i < document.body.children.length; i++) {
+            document.body.children[i].style.opacity = '100%'
+          } 
+          clbk()
+        }
+        popupcon.appendChild(popup)
+        popup.children[1].appendChild(confirmr)
+        flex(popupcon, [
+          {
+            el:popupcon.children[0],
+          }
+        ], {
+          justify: 'middle',
+          itemAlign: 'middle'
+        })
+        document.body.appendChild(popupcon)
+      }
+      function anchorredirect(anchor) {
+        anchor.preventDefault()
+        var thisy = this
+        confirmpopup('Are you sure you trust this site?: ', function() {
+          open(thisy.href)
+        })
+      }
+      fetch('/getAGuild/'+guild.id).then((r) => {
+        r.json().then((json) => {
+          getAUserWithId(json.owner, (k) => {
+            serverowner = k.name
+          })
+        })
+      })
+      var suckit = io()
+      function selectTextOf(element) {
+        var node = element
+        if (document.body.createTextRange) {
+          const range = document.body.createTextRange();
+          range.moveToElementText(node);
+          range.select();
+        } else if (window.getSelection) {
+          const selection = window.getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(node);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } else {
+          console.warn("Could not select text in node: Unsupported browser.");
+        }
+      }
+      function notify(message) {
+        try {
+          var notif = new Notification('New message in ' + guild.name, {
+            body:message
+          })
+          notif.onclick = (e) => {
+            window.focus()
+          }
+        } catch(err) {
+          
+        }
+      }
+      suckit.on('updtmsg', (dt) => {
+        if(dt.guildid === guild.id) {
+          fetch('/getAGuild/'+guild.id).then(function(r) {
+            r.json().then(function(j) {
+              var oldguild = JSON.parse(JSON.stringify(guild))
+              guild = j
+              if(oldguild.messages !== guild.messages) {
+                var latestmessage = guild.messages.at(-1)
+                if(latestmessage.author !== localStorage.getItem('username')) {
+                  notify(latestmessage.author+': '+latestmessage.content)
+                }
+              }
+              getMessages()
+            })
+          })
+        }
+      })
+      function addMsgMenu() {
+        if(!document.body.contains(document.getElementById('messagemenu'))) {
+          var mm = document.createElement('div')
+          mm.id = 'messagemenu'
+          mm.style.display = 'none'
+          mm.innerHTML = `<button class="forowner" id="delmsgr">Delete message</button>
+  <button class="forowner" id="editmsgr">Edit message</button>
+  <button class="" id="copyidr">Copy message ID</button>`
+        document.body.appendChild(mm)
+        }
+      }
+      function getEmbedHTML(title, descrip, img) {
+        var end = '<div class="embed">'
+        end += '<h3>' + title + '</h3>'
+        end += '<p>' + descrip + '</p>'
+        end += '<img src="' + img + '">'
+        return end + '</div>'
+      }
+      var xhr = new XMLHttpRequest()
+      function getMessages() {
+        addMsgMenu()
+        var response = guild.messages
+        allmessages = document.getElementById('messages')
+        allmessages.innerHTML = ''
+        for(var i = 0; i < guild.messages.length; i++) {
+          p = document.createElement('p')
+          p.className = 'theMessages'
+          if(guild.messages[i]['content'].startsWith('[Link]')) {
+            guild.messages[i]['content'] = guild.messages[i]['content'].replace('[Link]', `<a href="${guild.messages[i]['content'].replace('[Link]', '')}">`)
+            guild.messages[i]['content'] += '</a>'
+            var lessindex = guild.messages[i]['content'].indexOf('>')
+            var greatindex = guild.messages[i]['content'].indexOf('<', lessindex)
+            fetch(`https://client.shivankchhaya.repl.co/metadata?site=${guild.messages[i]['content'].substring(lessindex+1, greatindex)}`).then((r) => {
+              r.json().then((t) => {
+                document.getElementsByClassName('theMessages')[i-1].insertAdjacentHTML('beforeEnd', getEmbedHTML(t.title, t.description, t.image))
+              })
+            })
+          }
+          if(guild.messages[i]['author'].endsWith('[Bot]')) {
+            guild.messages[i]['author'] = guild.messages[i]['author'].replace('[Bot]', '<span class="botlabel">Bot</span>')
+          }
+          function addZeroIfNeeded(num) {
+            if(num < 9) {
+              return '0'+num
+            }
+            return num
+          }
+          var nowtime = new Date(Number(guild.messages[i]['timesent']))
+          var hours = nowtime.getHours()
+          var nhours = hours > 12 ? hours - 12 : hours
+          var median = hours > 12 ? 'PM' : 'AM'
+          p.innerHTML = '<span class="msgauthor">' + guild.messages[i]['author'] + '</span> - ' + guild.messages[i]['content'] + `<span style="display: none;" class="msgid">${guild.messages[i]['id']}</span>` + `<span class="messagetime">${nowtime.toDateString() + ' ' + nhours + ':' + addZeroIfNeeded(nowtime.getMinutes()) + ' ' + median}</span>`
+          if(p.querySelector(':scope > a') !== null) {
+            p.querySelector(':scope > a').onclick = anchorredirect
+          }
+          p.id = guild.messages[i]['id']
+          allmessages.appendChild(p)
+        }
+        clses = document.getElementsByClassName('theMessages')
+        for(var i = 0; i < clses.length; i++) {
+          clses[i].onmouseover = function() {
+            this.querySelectorAll(':scope > .messagetime')[0].style.display = 'inline'
+            var msgid = this.querySelectorAll(':scope > .msgid')[0].innerHTML
+            var spnobj = this.querySelectorAll(':scope > .msgid')[0]
+            var msgauthor = this.children[0].innerText
+            var messagemenu = document.getElementById('messagemenu')
+            if(!messagemenu) {
+              addMsgMenu()
+              messagemenu = document.getElementById('messagemenu')
+            }
+            messagemenu.style.display = 'block'
+            var url = document.location.origin
+            messagemenu.children[0].onclick = function() {
+              fetch(url + '/delmsg?id=' + msgid + '&guildid=' + guild.id + '&purge=no').then(function(r) {
+                addMsgMenu()
+                getMessages()
+                suckit.emit('updmsg', {'guildid':guild.id})
+              })
+            }
+            messagemenu.children[1].onclick = function() {
+              var element = this.parentElement.parentElement, text = '';
+              for (var i = 0; i < element.childNodes.length; ++i)
+                if (element.childNodes[i].nodeType === Node.TEXT_NODE)
+                  text += element.childNodes[i].textContent;
+              var newmsg = prompt('New message?: ', text.substring(3))
+              if(newmsg.startsWith('https://')) {
+                newmsg = '[Link]' + newmsg
+              }
+              if(newmsg !== null || newmsg !== '') {
+                fetch(url + '/editmsg?id=' + msgid + '&new=' + newmsg + '&guildid=' + guild.id).then(function(r) {
+                  getMessages()
+                  suckit.emit('updmsg', {'guildid':guild.id})
+                })
+              }
+            }
+            messagemenu.children[2].onclick = function() {
+              spnobj.style.display = 'inline'
+              selectTextOf(spnobj)
+              navigator.clipboard.writeText(spnobj.innerHTML)
+              spnobj.style.display = 'none'
+            }
+            if(msgauthor !== localStorage.getItem('username') && serverowner !== localStorage.getItem('username')) {
+              for(var j = 0; j < messagemenu.children.length; j++) {
+                var child = messagemenu.children[j]
+                if(child.classList.contains('forowner')) {
+                  child.style.display = 'none'
+                }
+              }
+            }
+            this.appendChild(messagemenu)
+          }
+          clses[i].onmouseleave = function() {
+            this.querySelectorAll(':scope > .messagetime')[0].style.display = 'none'
+            var messagemenu = document.getElementById('messagemenu')
+            if(!messagemenu) {
+              addMsgMenu()
+              messagemenu = document.getElementById('messagemenu')
+            }
+            for(var j = 0; j < messagemenu.children.length; j++) {
+              messagemenu.children[j].style.display = 'inline'
+            }
+            messagemenu.style.display = 'none'
+          }
+        }
+      }
+      getMessages()
+      function sendMessage() {
+        var time = Date.now()
+        var message = document.getElementById('messagetosend').value
+        if(message.startsWith('https://')) {
+          message = '[Link]' + message
+        }
+        var user = localStorage.getItem('username')
+        if(message !== '') {
+          var message = document.getElementById('messagetosend').value
+          document.getElementById('messagetosend').value = ''
+          xhr.open('GET', `/sendmessage?message=${message}&user=${user}&time=${time}&guildid=${guild.id}`, true)
+          xhr.send()
+          xhr.onreadystatechange = processRequest
+          var msgid 
+          function processRequest(e) {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+              suckit.emit('updmsg', {'guildid':guild.id})
+              msgid = xhr.responseText
+              xhr.open('GET', '/getBots?guildid=' + guild.id, true)
+              xhr.send()
+              xhr.onreadystatechange = processReques
+              function processReques() {
+                if(xhr.readyState == 4 && xhr.status == 200) {
+                  var resp = JSON.parse(xhr.responseText)
+                  for(var i = 0; i < resp.bots.length; i++) {
+                    // bookmark
+                    var j = resp.bots[i]
+                    var data = {
+                      botinfo:j,
+                      message:message,
+                      msgid:msgid,
+                      time:time,
+                      guildid:guild.id
+                    }
+                    data.botinfo = j
+                    //fetch(j.website+'/event/message?message='+message+'&id='+msgid+'&time='+time+'&guild='+guild.id)
+                    var splitmsg = message.split(' ')
+                    function moreparse(splitstr) {
+                      var strtqi 
+                      var endqi
+                      var toret = splitstr
+                      for(var n in splitstr) {
+                        o = splitstr[n]
+                        if(o.startsWith('"')) {
+                          strtqi = n
+                        } else if(o.endsWith('"')) {
+                          endqi = n
+                          toret[strtqi] = splitstr.slice(strtqi, endqi+1).join(' ').replaceAll('"', '')
+                          for(var k = strtqi+1; k < endqi+1; k++) {
+                            toret.splice(k, 1)
+                          }
+                        }
+                      }
+                      return toret
+                    }
+                    splitmsg = moreparse(splitmsg)
+                    var querytosend = '?'
+                    for(var m = 1; m < splitmsg.length; m++) {
+                      querytosend += `param${m}=${splitmsg[m]}&`
+                    }
+                    querytosend += 'guildId='+guild.id+'&initiator='+user
+                    data.querytosend = querytosend
+                    /*if(message.startsWith(j.prefix)) {
+                      fetch(j.website+'/command/'+splitmsg[0].substr(1)+querytosend).then(getMessages)
+                    }*/
+                    suckit.emit('botmessage', data)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      function getUsers() {
+        var mems = guildmems
+        document.querySelector('#memlist').innerHTML = ''
+        for(var i in mems) {
+          var li = document.createElement('li')
+          var k = mems[i]
+          if(k.id === guild.owner) {
+            k.name += ' 👑'
+          }
+          var newk = k.name.replace('👑', '<span id="crownemoji">👑</span><span id="serverownertext">Server Owner</span>').replace('[Bot]', '<span class="botlabel">Bot</span>')
+          if(k.online) {
+            var bordercol = 'green'
+          } else {
+            var bordercol = 'gray'
+          }
+          li.innerHTML = '<img width="45px" height="45px" style="border-radius: 50%; border: 3px ' + bordercol + ' solid" src="' + k.pfp + '">' + '<span class="namein">' + newk + '</span>' + '<span class="statusin">' + k.status + '</span>'
+          li.id = k.id
+          document.getElementById('memlist').appendChild(li)
+          li.onclick = function(ev) {
+            var idofmem = ev.target.id
+            if(ev.target.nodeName != 'LI') {
+              var idofmem = ev.target.parentElement.id
+            }
+            var makeframe = true
+            if(document.getElementById('memiframe')) {
+              makeframe = false
+            }
+            if(makeframe) {
+              var iframe = document.createElement('iframe')
+              iframe.id = 'memiframe'
+              iframe.src = '/userframe/'+document.body.className+'/'+idofmem
+              document.getElementById(idofmem).appendChild(iframe)
+            } else {
+              document.getElementById('memiframe').remove()
+            }
+          }
+        }
+      }
+      getUsers()
+      function keysend(e) {
+        if(e.code === 'Enter') {
+          sendMessage()
+        }
+      }
+      document.getElementsByTagName('body')[0].addEventListener('keyup', keysend)
+      document.getElementById('sender').addEventListener('click', sendMessage)
+      function widgetlink() {
+        navigator.clipboard.writeText('https://small-talk.shivankchhaya.repl.co/widget/'+guild.id)
+        document.getElementById('frame').innerText = 'Link copied to clipboard!'
+        setTimeout(() => {
+          document.getElementById('frame').innerText = 'Get a link for widget to this server'
+        }, 1000)
+      }
+      } catch(err) {
+        throw err
+        alert(err)
+      }
+      </script>
+  </body>
+</html>
