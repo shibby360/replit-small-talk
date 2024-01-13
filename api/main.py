@@ -48,6 +48,8 @@ def getmemwithid(id):
     if mems[i]['id'] == id:
       return i
 def addtolog(texttoadd):
+  if __name__ != '__main__':
+    return
   log = open('log', 'a')
   log.write(texttoadd)
   log.close()
