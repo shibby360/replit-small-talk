@@ -299,4 +299,5 @@ def botmessagecame(data):
   rq = requests.get(data.botinfo.website+'/event/message?message='+data.message+'&id='+data.msgid+'&time='+data.time+'&guild='+data.guildid)
   print('a bot message arrived', 'data', data)
   
-suckit.run(app, host='0.0.0.0', port=8080)
+if __name__ == '__main__':
+  suckit.run(app, host='0.0.0.0', port=8080)
