@@ -1,2 +1,0 @@
-migrate script tags to files
-add permissions to guild member lists
