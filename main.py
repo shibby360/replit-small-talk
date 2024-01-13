@@ -8,7 +8,6 @@ from replit import db
 
 #log = logging.getLogger('werkzeug')
 #log.setLevel(logging.WARNING)
-__import__('os').system('clear')
 app = Flask('messager', template_folder='ts')
 suckit = SocketIO(app)
 class bcolors:
