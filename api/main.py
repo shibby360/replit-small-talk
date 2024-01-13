@@ -57,6 +57,12 @@ def addtolog(texttoadd):
     filelines.pop(0)
     writelog.write(''.join(filelines))
     writelog.close()
+def getidfromusername(username):
+  for i in mems:
+    if i['username'] == username:
+      return i['_id']
+def getdocbyusername(username):
+  return memscol.find_one({'username':username})
 guildscol = database['guilds']
 guilds = {}
 for i in guildscol.find():
