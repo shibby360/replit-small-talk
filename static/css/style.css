@@ -22,7 +22,7 @@ h2 {
 }
 #messages {
   overflow-y: scroll;
-  height: 45vh;
+  height: 55vh;
 }
 ::-webkit-scrollbar {
   width: 10px;
