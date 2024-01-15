@@ -31,7 +31,6 @@ memscol = database['mems']
 mems = {}
 for i in memscol.find():
   mems[str(i['_id'])] = i
-print(mems)
 def find(list, prop, val):
   for i in list:
     if i[prop] == val:
@@ -65,21 +64,24 @@ def getidfromusername(username):
       return i['_id']
 def getdocbyusername(username):
   return memscol.find_one({'username':username})
+def exclude(dict_, excl):
+  end = {}
+  for i in dict_:
+    if i not in excl:
+      end[i] = dict_[i]
+  return end
 guildscol = database['guilds']
 guilds = {}
 for i in guildscol.find():
   guilds[str(i['_id'])] = i
 def save():
-  print('aight')
-  return
   for i in mems:
     memscol.update_one({'_id':ObjectId(i)}, {"$set":mems[i]})
   for i in guilds:
     guildscol.update_one({'_id':ObjectId(i)}, {"$set":guilds[i]})
-  assignidcol.update_one({'actualdoc':True}, {"$inc", {'val':1}})
+  assignidcol.update_one({'actualdoc':True}, {"$inc": {'val':1}})
 assignidcol = database['id']
 assignid = assignidcol.find_one({'actualdoc':True})['val']
-print(assignid)
 @app.route('/')
 def homepager():
   return render_template('start.html')
@@ -93,8 +95,7 @@ def getMem(name):
 def getUsers():
   toret = mems.copy()
   for i in toret:
-    del toret[i]['_id']
-    del toret[i]['password']
+    toret = exclude(toret[i], ['_id', 'password'])
   return toret
 
 @app.route('/allusers/<guildid>')
@@ -108,11 +109,12 @@ def sendmessage_withGET():
     form[str(i)[2:-1]] = str(form[i][0])[2:-1]
     del form[i]
   global guilds
+  global assignid
   msgtosend = {'author':form['user'], 'content':form['message'], 'timesent':form['time'], 'id':assignid}
   assignid += 1
   for guild in guilds:
-    if guild['id'] == int(form['guildid']):
-      guild['messages'].append(msgtosend)
+    if guilds[guild]['id'] == int(form['guildid']):
+      guilds[guild]['messages'].append(msgtosend)
   save()
   addtolog(form['user'] + f' sent a message.({time.ctime(time.time())})\n')
   return str(assignid-1)
@@ -138,8 +140,7 @@ def loggedin_withGET():
     if form['pwd'] == userdoc['password']:
       addtolog(form['user'] + f' logged in.({time.ctime(time.time())})\n')
       userdoc['online'] = True
-      toret = dict(userdoc).copy()
-      del toret['_id']
+      toret = exclude(dict(userdoc), ['_id'])
       # del toret['pfp']
       return toret
     else:
@@ -154,17 +155,17 @@ def delmsg():
     del form[i]
   global guilds
   for guild in guilds:
-    if guild['id'] == int(form['guildid']):
-      messages = guild['messages']
+    if guilds[guild]['id'] == int(form['guildid']):
+      messages = guilds[guild]['messages']
       if form['purge'] == 'yes':
         messages = []
-        guild['messages'] = messages
+        guilds[guild]['messages'] = messages
         continue
       newmess = messages[:]
       for mess in newmess:
         if mess['id'] == int(form['id']):
           messages = [i for i in messages if i['id']!=mess['id']]
-      guild['messages'] = messages
+      guilds[guild]['messages'] = messages
   save()
   return ''
 
@@ -175,6 +176,7 @@ def makeprof():
   for i in form.copy():
     form[str(i)[2:-1]] = str(form[i][0])[2:-1]
     del form[i]
+  global assignid
   mems[form['name'].replace('+', ' ')] = {'status':'Click to change status', 'password':form['pwd'], 'id':assignid,'guilds':[], 'pfp':open('base64default').read(), 'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}}
   assignid += 1
   save()
@@ -190,27 +192,28 @@ def editmsg():
     del form[i]
   global guilds
   for guild in guilds:
-    if guild['id'] == int(form['guildid']):
-      messages = guild['messages']
+    if guilds[guild]['id'] == int(form['guildid']):
+      messages = guilds[guild]['messages']
       for mess in messages:
         if mess['id'] == int(form['id']):
           mess['content'] = form['new']
-      guild['messages'] = messages
+      guilds[guild]['messages'] = messages
   save()
   return ''
 
 @app.route('/guilds/<guildid>', methods=['GET'])
 def allguilds(guildid):
   fullguild = guildscol.find_one({'id':int(guildid)})
+  fullguildret = exclude(fullguild, ['_id'])
   guildmems = []
   for i in fullguild['members']:
     for j in mems:
       if i == getid(j):
         retobj = mems[j].copy()
-        del retobj['password']
+        retobj = exclude(retobj, ['_id', 'password'])
         retobj['name'] = j
         guildmems.append(retobj)
-  return render_template('messages.html', fullguild=fullguild, fullguildname=fullguild['name'], guildmems=guildmems)
+  return render_template('messages.html', fullguild=fullguildret, fullguildname=fullguild['name'], guildmems=guildmems)
 
 @app.route('/makeguild')
 def makeguild():
@@ -220,6 +223,7 @@ def makeguild():
     del form[i]
   global guilds
   global mems
+  global assignid
   guilds.append({'name':form['name'], 'invite code':form['code'], 'members':[form['owner']], 'id':assignid, 'messages':[], 'owner':form['owner']})
   mems[getmemwithid(int(form['owner']))]['guilds'].append(assignid)
   assignid += 1
@@ -229,8 +233,7 @@ def makeguild():
 @app.route('/getAGuild/<id>', methods=['GET'])
 def getAGuild(id):
   guildtoret = guildscol.find_one({'id':int(id)})
-  guildtoret = guildtoret.copy()
-  del guildtoret['_id']
+  guildtoret = exclude(guildtoret, ['_id'])
   return guildtoret
 
 @app.route('/invite/<code>')
@@ -258,9 +261,9 @@ def editprof(toedit, value, username):
   username = urllib.parse.unquote(username).replace('+', ' ')
   if toedit == 'online':
     value = eval(value)
-  mems[username][toedit] = value
+  getdocbyusername(username)[toedit] = value
   save()
-  return mems[username]
+  return exclude(getdocbyusername(username), ['_id'])
 
 @app.route('/widget/<guildid>')
 def widget(guildid):
@@ -272,7 +275,7 @@ def userframe(theme, userid):
     if mems[i]['id'] == int(userid):
       user = mems[i].copy()
       user['name'] = i
-  return render_template('userframe.html', user=user, theme=theme)
+  return render_template('userframe.html', user=exclude(user, ['_id']), theme=theme)
 
 @app.route('/kick', methods=['GET'])
 def kick_withGET():
@@ -292,7 +295,7 @@ def kick_withGET():
 @suckit.on('updmsg')
 def updmsg(data):
   for guild in guilds:
-    if guild['id'] == int(data['guildid']):
+    if guilds[guild]['id'] == int(data['guildid']):
       emit('updtmsg', {'guildid':data['guildid']}, broadcast=True)
 
 # @suckit.on('editpfp')

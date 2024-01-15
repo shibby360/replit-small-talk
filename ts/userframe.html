@@ -21,6 +21,7 @@
     var True = true
     var False = false
     var user = {{ user|safe }}
+    user.pfp = 'https://urmom.com'
     document.getElementsByTagName('img')[0].src = user.pfp
     document.getElementById('status').innerText = user.status
   </script>
