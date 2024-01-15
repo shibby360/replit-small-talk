@@ -15,12 +15,13 @@
   <img height="30vh" style="border-radius:50%;">
   <p id="name" style="display: inline; height:30vh;"></p>
   <div class="divline"></div>
-  <p id="status" style="margin: 0px; font-size: " ></p>
+  <p id="status" style="margin: 0px"></p>
   <script>
     var True = true
     var False = false
     var user = {{ user|safe }}
     user.pfp = 'https://urmom.com'
+    document.getElementById('name').innerText = user.username
     document.getElementsByTagName('img')[0].src = user.pfp
     document.getElementById('status').innerText = user.status
   </script>

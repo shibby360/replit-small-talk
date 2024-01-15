@@ -7,6 +7,7 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
   </head>
   <body class="dark">
+    <button id="homebutton"><img src="" id="homebuttonimg"></button>
     <h1>{{ fullguildname }}</h1>
     <img id='flag'>
     <div id="guildscreen">
@@ -311,7 +312,6 @@
         }
         var user = localStorage.getItem('username')
         if(message !== '') {
-          var message = document.getElementById('messagetosend').value
           document.getElementById('messagetosend').value = ''
           xhr.open('GET', `/sendmessage?message=${message}&user=${user}&time=${time}&guildid=${guild.id}`, true)
           xhr.send()
