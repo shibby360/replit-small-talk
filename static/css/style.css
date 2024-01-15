@@ -189,6 +189,9 @@ body.dark .embed {
   border: 3px white solid;
   background-color: gray;
 }
+#homebuttonimg {
+  border: 3px white solid;
+}
 /* Light theme */
 body.light {
   background-color: white;
@@ -252,4 +255,7 @@ body.light #changeavatarhelpdialog {
 body.light .embed {
   border: 3px black solid;
   background-color: darkgray;
+}
+#homebuttonimg {
+  border: 3px black solid;
 }
