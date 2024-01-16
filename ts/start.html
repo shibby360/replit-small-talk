@@ -9,8 +9,10 @@
   <body class="dark">
     <input placeholder="username" id='user'>
     <input placeholder="password" id='pwd' type='password'>
+    <br>
     <button onclick="login()">Login</button>
-    <button onclick="login_()" id="createprofilebtn">Create profile(Click before you enter anything!)</button>
+    <p>OR</p>
+    <button onclick="login_()" id="createprofilebtn">Create profile</button>
     <p id='notfound' style="display: none; color: red;">User not found.</p>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
     <srcipt src="{{ url_for('static', filename='js/leave.js') }}"></srcipt>

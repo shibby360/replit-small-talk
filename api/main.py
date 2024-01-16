@@ -77,8 +77,12 @@ for i in guildscol.find():
 def save():
   for i in mems:
     memscol.update_one({'_id':ObjectId(i)}, {"$set":mems[i]})
+  for i in memscol.find():
+    mems[str(i['_id'])] = i
   for i in guilds:
     guildscol.update_one({'_id':ObjectId(i)}, {"$set":guilds[i]})
+  for i in guildscol.find():
+    guilds[str(i['_id'])] = i
   assignidcol.update_one({'actualdoc':True}, {"$inc": {'val':1}})
 assignidcol = database['id']
 assignid = assignidcol.find_one({'actualdoc':True})['val']
@@ -177,12 +181,20 @@ def makeprof():
     form[str(i)[2:-1]] = str(form[i][0])[2:-1]
     del form[i]
   global assignid
-  mems[form['name'].replace('+', ' ')] = {'status':'Click to change status', 'password':form['pwd'], 'id':assignid,'guilds':[], 'pfp':open('base64default').read(), 'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}}
+  updatedoc = {
+    'status':'Click to change status',
+    'username':form['name'].replace('+',  ' '),
+    'password':form['pwd'], 
+    'id':assignid,
+    'guilds':[],
+    'pfp':open('base64default').read(), 
+    'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}
+  }
+  memscol.insert_one(updatedoc)
   assignid += 1
   save()
   addtolog(form['name'] + f' created their profile.({time.ctime(time.time())})\n')
-  toret = mems[form['name'].replace('+', ' ')].copy()
-  return toret
+  return updatedoc
 
 @app.route('/editmsg', methods=['GET'])
 def editmsg():

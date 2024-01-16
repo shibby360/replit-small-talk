@@ -7,7 +7,7 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
   </head>
   <body class="dark">
-    <img src="" id="homebuttonimg" style="width: 50px; height: 50px; border-radius: 50%; float: right;">
+    <a id="homebuttonlink"><img src="" id="homebuttonimg" style="width: 50px; height: 50px; border-radius: 50%; float: right;"></a>
     <h1>{{ fullguildname }}</h1>
     <img id='flag'>
     <div id="guildscreen">
@@ -381,9 +381,7 @@
         }, 1000)
       }
       document.getElementById('homebuttonimg').src = 'https://norlanbewley.com/bewleymusic/wp-content/uploads/2017/04/Bone-Chart-b.gif'/*JSON.parse(localStorage.getItem('stuff')).pfp*/
-      document.getElementById('homebuttonimg').addEventListener('click', function() {
-        window.location = '/user/' + localStorage.getItem('username')
-      })
+      document.getElementById('homebuttonlink').href = '/users/' + localStorage.getItem('username')
       } catch(err) {
         throw err
         alert(err)
