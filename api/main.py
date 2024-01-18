@@ -7,7 +7,6 @@ from flask_socketio import SocketIO, emit
 from bson.objectid import ObjectId
 import pymongo
 import os
-import flickrapi
 if os.path.isfile('mongouri.txt'):
   connectionstring = open('mongouri.txt').read().strip()
 else:
