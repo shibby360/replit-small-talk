@@ -7,6 +7,12 @@ from flask_socketio import SocketIO, emit
 from bson.objectid import ObjectId
 import pymongo
 import os
+from imgur_python import Imgur
+if os.path.isfile('imgurclientid.txt'):
+  imgurclid = open('imgurclientid.txt').read().strip()
+else:
+  imgurclid = os.environ.get('IMGUR_CLIENT_ID')
+imgurcl = Imgur({'client_id':imgurclid})
 if os.path.isfile('mongouri.txt'):
   connectionstring = open('mongouri.txt').read().strip()
 else:
@@ -187,7 +193,7 @@ def makeprof():
     'password':form['pwd'], 
     'id':assignid,
     'guilds':[],
-    'pfp':open('base64default').read(), 
+    'pfp':'BSGWAkQ',
     'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}
   }
   memscol.insert_one(updatedoc)
@@ -310,10 +316,10 @@ def updmsg(data):
     if guilds[guild]['id'] == int(data['guildid']):
       emit('updtmsg', {'guildid':data['guildid']}, broadcast=True)
 
-# @suckit.on('editpfp')
-# def editpfp(data):
-#   mems[data['username']]['pfp'] = data['dataurl']
-#   db['mems'] = mems
+@suckit.on('editpfp')
+def editpfp(data):
+  mems[data['username']]['pfp'] = data['dataurl']
+  save()
 
 if __name__ == '__main__':
   suckit.run(app)
