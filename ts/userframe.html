@@ -20,9 +20,8 @@
     var True = true
     var False = false
     var user = {{ user|safe }}
-    user.pfp = 'https://urmom.com'
     document.getElementById('name').innerText = user.username
-    document.getElementsByTagName('img')[0].src = user.pfp
+    document.getElementsByTagName('img')[0].src = 'https://i.imgur.com/' + user.pfp
     document.getElementById('status').innerText = user.status
   </script>
 </body>

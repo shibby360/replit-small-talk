@@ -341,8 +341,7 @@
           } else {
             var bordercol = 'gray'
           }
-          k.pfp = 'https://urmom.com'
-          li.innerHTML = '<img width="45px" height="45px" style="border-radius: 50%; border: 3px ' + bordercol + ' solid" src="' + k.pfp + '">' + '<span class="namein">' + newk + '</span>' + '<span class="statusin">' + k.status + '</span>'
+          li.innerHTML = '<img width="45px" height="45px" style="border-radius: 50%; border: 3px ' + bordercol + ' solid" src="https://i.imgur.com/' + k.pfp + '">' + '<span class="namein">' + newk + '</span>' + '<span class="statusin">' + k.status + '</span>'
           li.id = k.id
           document.getElementById('memlist').appendChild(li)
           li.onclick = function(ev) {
@@ -380,7 +379,7 @@
           document.getElementById('frame').innerText = 'Get a link for widget to this server'
         }, 1000)
       }
-      document.getElementById('homebuttonimg').src = 'https://norlanbewley.com/bewleymusic/wp-content/uploads/2017/04/Bone-Chart-b.gif'/*JSON.parse(localStorage.getItem('stuff')).pfp*/
+      document.getElementById('homebuttonimg').src = 'https://i.imgur.com/' + JSON.parse(localStorage.getItem('stuff')).pfp
       document.getElementById('homebuttonlink').href = '/users/' + localStorage.getItem('username')
       } catch(err) {
         throw err

@@ -7,12 +7,10 @@ from flask_socketio import SocketIO, emit
 from bson.objectid import ObjectId
 import pymongo
 import os
-from imgur_python import Imgur
 if os.path.isfile('imgurclientid.txt'):
   imgurclid = open('imgurclientid.txt').read().strip()
 else:
   imgurclid = os.environ.get('IMGUR_CLIENT_ID')
-imgurcl = Imgur({'client_id':imgurclid})
 if os.path.isfile('mongouri.txt'):
   connectionstring = open('mongouri.txt').read().strip()
 else:
@@ -66,8 +64,8 @@ def addtolog(texttoadd):
     writelog.close()
 def getidfromusername(username):
   for i in mems:
-    if i['username'] == username:
-      return i['_id']
+    if mems[i]['username'] == username:
+      return str(mems[i]['_id'])
 def getdocbyusername(username):
   return memscol.find_one({'username':username})
 def exclude(dict_, excl):
@@ -99,7 +97,7 @@ def homepager():
 @app.route('/users/<name>')
 def getMem(name):
   body = getdocbyusername(name)['status'] if getdocbyusername(name) else 'User not found.'
-  return render_template('user.html', user=name, userstatus=body)#, userpfp=mems[name]['pfp'])
+  return render_template('user.html', user=name, userstatus=body, imgurclientid=imgurclid, userpfp=getdocbyusername(name)['pfp'])
 
 @app.route('/users')
 def getUsers():
@@ -151,7 +149,6 @@ def loggedin_withGET():
       addtolog(form['user'] + f' logged in.({time.ctime(time.time())})\n')
       userdoc['online'] = True
       toret = exclude(dict(userdoc), ['_id'])
-      # del toret['pfp']
       return toret
     else:
       return 'invalid auth'
@@ -193,7 +190,7 @@ def makeprof():
     'password':form['pwd'], 
     'id':assignid,
     'guilds':[],
-    'pfp':'BSGWAkQ',
+    'pfp':'BSGWAkQ.png',
     'location':{'flag':requests.get('https://api.ipdata.co/'+form['ip']+'?api-key=eef41dccbe52de3cd1cdae1763eea81fb012e36645cbeaab1390e0fc').json()['flag']}
   }
   memscol.insert_one(updatedoc)
@@ -279,7 +276,7 @@ def editprof(toedit, value, username):
   username = urllib.parse.unquote(username).replace('+', ' ')
   if toedit == 'online':
     value = eval(value)
-  getdocbyusername(username)[toedit] = value
+  mems[getidfromusername(username)][toedit] = value
   save()
   return exclude(getdocbyusername(username), ['_id'])
 
@@ -318,7 +315,8 @@ def updmsg(data):
 
 @suckit.on('editpfp')
 def editpfp(data):
-  mems[data['username']]['pfp'] = data['dataurl']
+  mems[getidfromusername(data['username'])]['pfp'] = data['imgid']
+  print(data['imgid'])
   save()
 
 if __name__ == '__main__':

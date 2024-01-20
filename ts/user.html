@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width">
     <title>@{{user}}</title>
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
-    <link rel="icon" href="{{userpfp}}">
+    <link rel="icon" href="https://i.imgur.com/{{userpfp}}">
+    <meta name="referrer" content="no-referrer">
   </head>
   <body class="dark">
-    <img src="{{userpfp}}" alt="" width="50px" height="50px" style="border-radius: 50%;" id="userpfp">
+    <p style="display: none" id="imgurclientid">{{imgurclientid}}</p>
+    <img src="https://i.imgur.com/{{userpfp}}" alt="" width="50px" height="50px" style="border-radius: 50%;" id="userpfp">
     <h1 style="display: inline;">{{user}}</h1>
     <p id="changeavatarhelpdialog">Click to change avatar</p>
     <p id="status" contenteditable onfocusout="statusonfocusout()">{{userstatus}}</p>
@@ -27,6 +29,8 @@
     <br>
     <script>
       try {
+      var imgurclientid = document.getElementById('imgurclientid').innerText
+      document.getElementById('imgurclientid').remove()
       var userid 
       fetch('/users').then((r) => {
         r.json().then((json) => {
@@ -97,8 +101,22 @@
           var suckit = io()
           image.src = e.target.result
           document.getElementsByTagName('link')[1].href = e.target.result
-          suckit.emit('editpfp', {username:'{{user}}', dataurl:e.target.result})
-        }
+          var myHeaders = new Headers();
+          myHeaders.append("Authorization", `Client-ID ${imgurclientid}`);
+          var formdata = new FormData();
+          formdata.append("image", reader.result.slice(reader.result.indexOf(',')));
+          var requestOptions = {
+            method: 'POST',
+            headers: myHeaders,
+            body: formdata,
+            redirect: 'follow'
+          };
+          fetch("https://api.imgur.com/3/image", requestOptions)
+            .then(response => response.json().then(function(resp) {
+              suckit.emit('editpfp', {username:'{{user}}', imgid:resp.data.link.split('/').at(-1)})
+            }))
+            .catch(error => console.log('error', error));
+          }
         reader.readAsDataURL(file);
       }
       document.getElementById('userpfp').onclick = userpfpclick
