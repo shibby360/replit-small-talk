@@ -320,4 +320,4 @@ def editpfp(data):
   save()
 
 if __name__ == '__main__':
-  suckit.run(app)
+  suckit.run(app, allow_unsafe_werkzeug=True)
