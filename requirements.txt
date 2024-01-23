@@ -3,4 +3,4 @@ Flask-SocketIO
 pymongo
 requests
 gunicorn
-gevent
+eventlet
