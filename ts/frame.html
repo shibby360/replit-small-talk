@@ -1,0 +1,48 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="dark">
+  <div id="messages"></div>
+  <button id="opener" onclick="function opener() { window.open('/guilds/'+gid) }; opener()">Open in new tab</button>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU`4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+  <script>
+    var suckit = io()
+    suckit.on('updtmsg', (dt) => {
+      if(dt.guildid === gid.toString()) {
+        fetch('/getmessages?guildid='+gid).then((r) => {
+          r.text().then((t) => {
+            messages = JSON.parse(t)
+            processRequest()
+          })
+        })
+      }
+    })
+    var messages = {{ messages|safe }}
+    var gid = {{ guildID }}
+    document.getElementById('opener')
+    function processRequest() {
+      var response = messages
+      allmessages = document.getElementById('messages')
+      allmessages.innerHTML = ''
+      for(var i = 0; i < response['messages'].length; i++) {
+        p = document.createElement('p')
+        p.className = 'theMessages'
+        if(response['messages'][i]['content'].startsWith('[Link]')) {
+          response['messages'][i]['content'] = response['messages'][i]['content'].replace('[Link]', `<a href="${response['messages'][i]['content'].replace('[Link]', '')}">`)
+          response['messages'][i]['content'] += '</a>'
+        }
+        var nowtime = new Date(Number(response['messages'][i]['timesent']))
+        var hours = nowtime.getHours()
+        var nhours = hours > 12 ? hours - 12 : hours
+        var median = hours > 12 ? 'PM' : 'AM'
+        p.innerHTML = '<span class="msgauthor">' + response['messages'][i]['author'] + '</span> - ' + response['messages'][i]['content'] + `<span style="display: none;" class="msgid">${response['messages'][i]['id']}</span>` + `<span class="framemessagetime messagetime">${nowtime.toDateString() + ' ' + nhours + ':' + nowtime.getMinutes() + ' ' + median}</span>`
+        p.id = response['messages'][i]['id']
+        allmessages.appendChild(p)
+      }
+    }
+    processRequest()
+  </script>
+</body>

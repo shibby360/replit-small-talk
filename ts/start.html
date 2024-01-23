@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Small talk</title>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" type="text/css">
+  </head>
+  <body class="dark">
+    <input placeholder="username" id='user'>
+    <input placeholder="password" id='pwd' type='password'>
+    <br>
+    <button onclick="login()">Login</button>
+    <p>OR</p>
+    <button onclick="login_()" id="createprofilebtn">Create profile</button>
+    <p id='notfound' style="display: none; color: red;">User not found.</p>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <srcipt src="{{ url_for('static', filename='js/leave.js') }}"></srcipt>
+    <script>
+      if(localStorage.getItem('username')) {
+        window.location = 'users/'+localStorage.getItem('username')
+      }
+      var xhr = new XMLHttpRequest()
+      function login() {
+        document.getElementById('notfound').style.display = 'none'
+        localStorage.setItem('username', `${document.getElementById('user').value}`)
+        xhr.open('GET', `/loggedin?user=${document.getElementById('user').value}&pwd=${document.getElementById('pwd').value}`, true)
+        xhr.send()
+        xhr.onreadystatechange = processRequest
+        function processRequest(e) {
+          if (xhr.readyState == 4 && xhr.status == 200) {
+            var response = xhr.responseText
+            if(response === 'Not found user.') {
+              document.getElementById('notfound').style.display = 'block'
+            } else {
+              localStorage.setItem('stuff', response)
+              window.location = '/users/' + document.getElementById('user').value
+            }
+          }
+        }
+      }
+      function keylogin(e) {
+        if(e.code === 'Enter') {
+          login()
+        }
+      }
+      function login_() {
+        usr = prompt('Username?: ')
+        pwd = prompt('Password?: ')
+        document.getElementById('user').value = usr
+        document.getElementById('pwd').value = pwd
+        var ipcallback = function(response) {
+          response.text().then(function(data) {
+            data = data.trim().split('\n').reduce(function(obj, pair) {
+              pair = pair.split('=');
+              return obj[pair[0]] = pair[1], obj;
+            }, {});
+            function processRequest(e) {
+              // io().emit('editpfp', {username:usr, dataurl:outimg.src})
+              login()
+            }
+            fetch(`/makeprof?name=${usr}&pwd=${pwd}&bot=no&ip=${data.ip}`).then(processRequest)
+          })
+        }
+        fetch('https://www.cloudflare.com/cdn-cgi/trace').then(ipcallback)
+        /*var inp = document.createElement('input')
+        document.body.appendChild(inp)
+        var outimg = document.createElement('img')
+        outimg.alt = 'ur pfp'
+        document.body.appendChild(outimg)
+        inp.type = 'file'
+        inp.onchange = function() {
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            outimg.src = e.target.result
+          }
+          reader.readAsDataURL(inp.files[0]);
+        }
+        var btn = document.createElement('button')
+        btn.innerText = 'Create'
+        document.body.appendChild(btn)
+        btn.onclick = function() {
+          fetch('https://www.cloudflare.com/cdn-cgi/trace').then(ipcallback)
+        }*/
+      }
+      document.getElementsByTagName('body')[0].addEventListener('keyup', keylogin)
+      {% if id %}
+      document.getElementById('user').value = '{{ name }}'
+      document.getElementById('pwd').value = '{{ id }}'
+      login('yes')
+      {% endif %}
+    </script>
+  </body>
+</html>

@@ -1,3 +1,2 @@
-# Get Started!
-
-Add files and start typing 🎉
+# messaging site
+pretty self explanotory lol
