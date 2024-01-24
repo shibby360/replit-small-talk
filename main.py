@@ -7,6 +7,8 @@ from flask_socketio import SocketIO, emit
 from bson.objectid import ObjectId
 import pymongo
 import os
+from dotenv import load_dotenv
+load_dotenv()
 if os.path.isfile('imgurclientid.txt'):
   imgurclid = open('imgurclientid.txt').read().strip()
 else:
@@ -15,7 +17,7 @@ if os.path.isfile('mongouri.txt'):
   connectionstring = open('mongouri.txt').read().strip()
 else:
   connectionstring = os.environ.get('MONGO_URI')
-print(os.environ['MONGO_URI'])
+print(open('.env').read().strip())
 cluster = pymongo.MongoClient(connectionstring)
 database = cluster['replit-small-talk']
 #log = logging.getLogger('werkzeug')
@@ -321,4 +323,4 @@ def editpfp(data):
   save()
 
 if __name__ == '__main__':
-  suckit.run(app)
+  suckit.run(app, allow_unsafe_werkzeug=True)
