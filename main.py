@@ -8,7 +8,8 @@ from bson.objectid import ObjectId
 import pymongo
 import os
 from dotenv import load_dotenv
-load_dotenv()
+if os.path.isfile('.env'):
+  load_dotenv()
 if os.path.isfile('imgurclientid.txt'):
   imgurclid = open('imgurclientid.txt').read().strip()
 else:
