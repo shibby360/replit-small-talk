@@ -15,6 +15,7 @@ if os.path.isfile('mongouri.txt'):
   connectionstring = open('mongouri.txt').read().strip()
 else:
   connectionstring = os.environ.get('MONGO_URI')
+print(os.environ['MONGO_URI'])
 cluster = pymongo.MongoClient(connectionstring)
 database = cluster['replit-small-talk']
 #log = logging.getLogger('werkzeug')
