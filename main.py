@@ -7,12 +7,9 @@ from flask_socketio import SocketIO, emit
 from bson.objectid import ObjectId
 import pymongo
 import os
-<<<<<<< HEAD
 from dotenv import load_dotenv
 if os.path.isfile('.env'):
   load_dotenv()
-=======
->>>>>>> 187293d2f2054d9fdb9f0f6ef8b0df799fa47590
 if os.path.isfile('imgurclientid.txt'):
   imgurclid = open('imgurclientid.txt').read().strip()
 else:
@@ -21,10 +18,6 @@ if os.path.isfile('mongouri.txt'):
   connectionstring = open('mongouri.txt').read().strip()
 else:
   connectionstring = os.environ.get('MONGO_URI')
-<<<<<<< HEAD
-print(open('.env').read().strip())
-=======
->>>>>>> 187293d2f2054d9fdb9f0f6ef8b0df799fa47590
 cluster = pymongo.MongoClient(connectionstring)
 database = cluster['replit-small-talk']
 #log = logging.getLogger('werkzeug')
